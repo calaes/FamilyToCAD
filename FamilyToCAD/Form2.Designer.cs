@@ -28,137 +28,162 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.label1 = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.button1 = new System.Windows.Forms.Button();
-            this.label2 = new System.Windows.Forms.Label();
-            this.comboBox1 = new System.Windows.Forms.ComboBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.comboBox2 = new System.Windows.Forms.ComboBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.button2 = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
+            this.LBL_TempLoc = new System.Windows.Forms.Label();
+            this.TB_TemplateLoc = new System.Windows.Forms.TextBox();
+            this.But_TemplateBrowse = new System.Windows.Forms.Button();
+            this.LBL_Proj = new System.Windows.Forms.Label();
+            this.ComBox_Project = new System.Windows.Forms.ComboBox();
+            this.LBL_FileType = new System.Windows.Forms.Label();
+            this.ComBox_ExpFileType = new System.Windows.Forms.ComboBox();
+            this.LBL_Family = new System.Windows.Forms.Label();
+            this.TB_FamilyLoc = new System.Windows.Forms.TextBox();
+            this.But_FamilyBrowse = new System.Windows.Forms.Button();
+            this.But_Export = new System.Windows.Forms.Button();
+            this.ComBox_FileExportSetup = new System.Windows.Forms.ComboBox();
+            this.LBL_FileExportSetup = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
-            // label1
+            // LBL_TempLoc
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(31, 48);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(140, 20);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Template Location";
+            this.LBL_TempLoc.AutoSize = true;
+            this.LBL_TempLoc.Location = new System.Drawing.Point(29, 110);
+            this.LBL_TempLoc.Name = "LBL_TempLoc";
+            this.LBL_TempLoc.Size = new System.Drawing.Size(140, 20);
+            this.LBL_TempLoc.TabIndex = 0;
+            this.LBL_TempLoc.Text = "Template Location";
             // 
-            // textBox1
+            // TB_TemplateLoc
             // 
-            this.textBox1.Location = new System.Drawing.Point(215, 45);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(434, 26);
-            this.textBox1.TabIndex = 1;
+            this.TB_TemplateLoc.Location = new System.Drawing.Point(207, 104);
+            this.TB_TemplateLoc.Name = "TB_TemplateLoc";
+            this.TB_TemplateLoc.Size = new System.Drawing.Size(434, 26);
+            this.TB_TemplateLoc.TabIndex = 1;
             // 
-            // button1
+            // But_TemplateBrowse
             // 
-            this.button1.Location = new System.Drawing.Point(678, 47);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 30);
-            this.button1.TabIndex = 2;
-            this.button1.Text = "Browse";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.But_TemplateBrowse.Location = new System.Drawing.Point(682, 105);
+            this.But_TemplateBrowse.Name = "But_TemplateBrowse";
+            this.But_TemplateBrowse.Size = new System.Drawing.Size(75, 30);
+            this.But_TemplateBrowse.TabIndex = 2;
+            this.But_TemplateBrowse.Text = "Browse";
+            this.But_TemplateBrowse.UseVisualStyleBackColor = true;
+            this.But_TemplateBrowse.Click += new System.EventHandler(this.button1_Click);
             // 
-            // label2
+            // LBL_Proj
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(31, 179);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(58, 20);
-            this.label2.TabIndex = 3;
-            this.label2.Text = "Project";
+            this.LBL_Proj.AutoSize = true;
+            this.LBL_Proj.Location = new System.Drawing.Point(29, 47);
+            this.LBL_Proj.Name = "LBL_Proj";
+            this.LBL_Proj.Size = new System.Drawing.Size(58, 20);
+            this.LBL_Proj.TabIndex = 3;
+            this.LBL_Proj.Text = "Project";
             // 
-            // comboBox1
+            // ComBox_Project
             // 
-            this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.Items.AddRange(new object[] {
+            this.ComBox_Project.FormattingEnabled = true;
+            this.ComBox_Project.Items.AddRange(new object[] {
             "<Current Project>",
             "New Project"});
-            this.comboBox1.Location = new System.Drawing.Point(215, 171);
-            this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(378, 28);
-            this.comboBox1.TabIndex = 4;
+            this.ComBox_Project.Location = new System.Drawing.Point(207, 39);
+            this.ComBox_Project.Name = "ComBox_Project";
+            this.ComBox_Project.Size = new System.Drawing.Size(378, 28);
+            this.ComBox_Project.TabIndex = 4;
+            this.ComBox_Project.SelectedIndexChanged += new System.EventHandler(this.ComBox_Project_SelectedIndexChanged);
             // 
-            // label3
+            // LBL_FileType
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(31, 233);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(118, 20);
-            this.label3.TabIndex = 5;
-            this.label3.Text = "Export FileType";
+            this.LBL_FileType.AutoSize = true;
+            this.LBL_FileType.Location = new System.Drawing.Point(29, 298);
+            this.LBL_FileType.Name = "LBL_FileType";
+            this.LBL_FileType.Size = new System.Drawing.Size(118, 20);
+            this.LBL_FileType.TabIndex = 5;
+            this.LBL_FileType.Text = "Export FileType";
             // 
-            // comboBox2
+            // ComBox_ExpFileType
             // 
-            this.comboBox2.FormattingEnabled = true;
-            this.comboBox2.Items.AddRange(new object[] {
+            this.ComBox_ExpFileType.FormattingEnabled = true;
+            this.ComBox_ExpFileType.Items.AddRange(new object[] {
             "DWG (2007)",
             "SAT"});
-            this.comboBox2.Location = new System.Drawing.Point(215, 225);
-            this.comboBox2.Name = "comboBox2";
-            this.comboBox2.Size = new System.Drawing.Size(222, 28);
-            this.comboBox2.TabIndex = 6;
+            this.ComBox_ExpFileType.Location = new System.Drawing.Point(207, 290);
+            this.ComBox_ExpFileType.Name = "ComBox_ExpFileType";
+            this.ComBox_ExpFileType.Size = new System.Drawing.Size(222, 28);
+            this.ComBox_ExpFileType.TabIndex = 6;
             // 
-            // label4
+            // LBL_Family
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(35, 111);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(120, 20);
-            this.label4.TabIndex = 7;
-            this.label4.Text = "Family RFA File";
+            this.LBL_Family.AutoSize = true;
+            this.LBL_Family.Location = new System.Drawing.Point(29, 172);
+            this.LBL_Family.Name = "LBL_Family";
+            this.LBL_Family.Size = new System.Drawing.Size(120, 20);
+            this.LBL_Family.TabIndex = 7;
+            this.LBL_Family.Text = "Family RFA File";
             // 
-            // textBox2
+            // TB_FamilyLoc
             // 
-            this.textBox2.Location = new System.Drawing.Point(217, 107);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(431, 26);
-            this.textBox2.TabIndex = 8;
+            this.TB_FamilyLoc.Location = new System.Drawing.Point(207, 166);
+            this.TB_FamilyLoc.Name = "TB_FamilyLoc";
+            this.TB_FamilyLoc.Size = new System.Drawing.Size(431, 26);
+            this.TB_FamilyLoc.TabIndex = 8;
             // 
-            // button2
+            // But_FamilyBrowse
             // 
-            this.button2.Location = new System.Drawing.Point(682, 107);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(70, 26);
-            this.button2.TabIndex = 9;
-            this.button2.Text = "Browse";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.But_FamilyBrowse.Location = new System.Drawing.Point(682, 172);
+            this.But_FamilyBrowse.Name = "But_FamilyBrowse";
+            this.But_FamilyBrowse.Size = new System.Drawing.Size(75, 26);
+            this.But_FamilyBrowse.TabIndex = 9;
+            this.But_FamilyBrowse.Text = "Browse";
+            this.But_FamilyBrowse.UseVisualStyleBackColor = true;
+            this.But_FamilyBrowse.Click += new System.EventHandler(this.button2_Click);
             // 
-            // button3
+            // But_Export
             // 
-            this.button3.Location = new System.Drawing.Point(207, 325);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(385, 75);
-            this.button3.TabIndex = 10;
-            this.button3.Text = "Run Export";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
+            this.But_Export.Location = new System.Drawing.Point(207, 359);
+            this.But_Export.Name = "But_Export";
+            this.But_Export.Size = new System.Drawing.Size(385, 75);
+            this.But_Export.TabIndex = 10;
+            this.But_Export.Text = "Run Export";
+            this.But_Export.UseVisualStyleBackColor = true;
+            this.But_Export.Click += new System.EventHandler(this.button3_Click);
+            // 
+            // ComBox_FileExportSetup
+            // 
+            this.ComBox_FileExportSetup.FormattingEnabled = true;
+            this.ComBox_FileExportSetup.Items.AddRange(new object[] {
+            "Single",
+            "Multiple"});
+            this.ComBox_FileExportSetup.Location = new System.Drawing.Point(207, 234);
+            this.ComBox_FileExportSetup.Name = "ComBox_FileExportSetup";
+            this.ComBox_FileExportSetup.Size = new System.Drawing.Size(216, 28);
+            this.ComBox_FileExportSetup.TabIndex = 11;
+            // 
+            // LBL_FileExportSetup
+            // 
+            this.LBL_FileExportSetup.AutoSize = true;
+            this.LBL_FileExportSetup.Location = new System.Drawing.Point(33, 234);
+            this.LBL_FileExportSetup.Name = "LBL_FileExportSetup";
+            this.LBL_FileExportSetup.Size = new System.Drawing.Size(131, 20);
+            this.LBL_FileExportSetup.TabIndex = 12;
+            this.LBL_FileExportSetup.Text = "File Export Setup";
             // 
             // Form2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(780, 446);
-            this.Controls.Add(this.button3);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.textBox2);
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this.comboBox2);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.comboBox1);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.button1);
-            this.Controls.Add(this.textBox1);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.LBL_FileExportSetup);
+            this.Controls.Add(this.ComBox_FileExportSetup);
+            this.Controls.Add(this.But_Export);
+            this.Controls.Add(this.But_FamilyBrowse);
+            this.Controls.Add(this.TB_FamilyLoc);
+            this.Controls.Add(this.LBL_Family);
+            this.Controls.Add(this.ComBox_ExpFileType);
+            this.Controls.Add(this.LBL_FileType);
+            this.Controls.Add(this.ComBox_Project);
+            this.Controls.Add(this.LBL_Proj);
+            this.Controls.Add(this.But_TemplateBrowse);
+            this.Controls.Add(this.TB_TemplateLoc);
+            this.Controls.Add(this.LBL_TempLoc);
             this.Name = "Form2";
             this.Text = "Form2";
             this.ResumeLayout(false);
@@ -168,16 +193,18 @@
 
         #endregion
 
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.ComboBox comboBox1;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.ComboBox comboBox2;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox textBox2;
-        private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Label LBL_TempLoc;
+        private System.Windows.Forms.TextBox TB_TemplateLoc;
+        private System.Windows.Forms.Button But_TemplateBrowse;
+        private System.Windows.Forms.Label LBL_Proj;
+        private System.Windows.Forms.ComboBox ComBox_Project;
+        private System.Windows.Forms.Label LBL_FileType;
+        private System.Windows.Forms.ComboBox ComBox_ExpFileType;
+        private System.Windows.Forms.Label LBL_Family;
+        private System.Windows.Forms.TextBox TB_FamilyLoc;
+        private System.Windows.Forms.Button But_FamilyBrowse;
+        private System.Windows.Forms.Button But_Export;
+        private System.Windows.Forms.ComboBox ComBox_FileExportSetup;
+        private System.Windows.Forms.Label LBL_FileExportSetup;
     }
 }

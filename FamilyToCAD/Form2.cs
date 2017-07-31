@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.Win32;
+using System.IO;
 
 namespace FamilyToCAD
 {
@@ -16,10 +18,37 @@ namespace FamilyToCAD
         private string s_FamilyFile;
         private string s_ProjectLocation;
         private string s_ExportFileType;
+        private string s_FileExportSetup;
 
         public Form2()
         {
+            ///<summary>
+            ///Initializes the userform
+            ///Fills in template location if found in registry
+            ///</summary>
+            string keystr = @"Software\FamilyToDWG";
+            string revityear = "2017";
+            string subkeystr = "TemplateLocation" + revityear;
+            RegistryKey key = Registry.CurrentUser.OpenSubKey(keystr, true);
+
             InitializeComponent();
+
+            if (key == null)
+            {
+                key = Registry.CurrentUser.CreateSubKey(keystr);
+                key.SetValue(subkeystr, "");
+            }
+            else
+            {
+                if (File.Exists(key.GetValue(subkeystr, null).ToString()))
+                {
+                    this.TB_TemplateLoc.Text = key.GetValue(subkeystr, null).ToString();
+                }
+            }
+
+            this.ComBox_Project.SelectedIndex = 0;
+            this.ComBox_ExpFileType.SelectedIndex = 0;
+            this.ComBox_FileExportSetup.SelectedIndex = 0;
         }
 
         public string TemplateFile
@@ -70,20 +99,64 @@ namespace FamilyToCAD
             }
         }
 
+        public string FileExportSetup
+        {
+            get
+            {
+                return s_FileExportSetup;
+            }
+            set
+            {
+                s_FileExportSetup = value;
+            }
+        }
+
         private void button3_Click(object sender, EventArgs e)
         {
             /// <summary>
             /// If the userform has valid inputs, runs the corresponding input actions
             /// </summary>
-            if (textBox1.Text == "")
+
+            Boolean b_Run = false;
+            if (this.ComBox_Project.Text == "<Current Project>")
             {
-                MessageBox.Show("Please Select a Template to load from");
-                this.Focus();
+                if (this.TB_FamilyLoc.Text == "")
+                {
+                    MessageBox.Show("Please Select a family to load");
+                    this.Focus();
+                }
+                else
+                {
+                    b_Run = true;
+                }
             }
-            else if (textBox2.Text == "")
+            else if (this.ComBox_Project.Text == "New Project")
             {
-                MessageBox.Show("Please Select a family to load");
-                this.Focus();
+                if (this.TB_FamilyLoc.Text == "")
+                {
+                    MessageBox.Show("Please Select a family to load");
+                    this.Focus();
+                }
+                else if (this.TB_TemplateLoc.Text == "")
+                {
+                    MessageBox.Show("Please Select a template to load");
+                    this.Focus();
+                }
+                else
+                {
+                    b_Run = true;
+                }
+            }
+
+            this.FamilyFile = this.TB_FamilyLoc.Text;
+            this.TemplateFile = this.TB_TemplateLoc.Text;
+            this.ExportFileType = this.ComBox_ExpFileType.Text;
+            this.ProjectLocation = this.ComBox_Project.Text;
+            this.FileExportSetup = this.ComBox_FileExportSetup.Text;
+
+            if (b_Run)
+            {
+                this.Close();
             }
         }
 
@@ -92,6 +165,14 @@ namespace FamilyToCAD
             /// <summary>
             /// Runs A Windows form to retrieve the requested Revit Template
             /// </summary>
+            var templateFD = new OpenFileDialog();
+            templateFD.Filter = "rte files (*.rte)|*.rte";
+            templateFD.Title = "Choose a Template";
+            templateFD.ShowDialog();
+            if (templateFD.FileName != "")
+            {
+                this.TB_TemplateLoc.Text = templateFD.FileName;
+            }
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -99,7 +180,28 @@ namespace FamilyToCAD
             /// <summary>
             /// Runs A Windows form to retrieve the requested Revit Family
             /// </summary>
+            var FD = new OpenFileDialog();
+            FD.Filter = "rfa files (*.rfa)|*.rfa";
+            FD.Title = "Choose A RevitRFA Family file";
+            FD.ShowDialog();
+            if (FD.FileName != "")
+            {
+                this.TB_FamilyLoc.Text = FD.FileName;
+            }
         }
 
+        private void ComBox_Project_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (this.ComBox_Project.Text == "<Current Project")
+            {
+                this.TB_TemplateLoc.Enabled = false;
+                this.TB_TemplateLoc.ReadOnly = true;
+            }
+            else if (this.ComBox_Project.Text == "New Project")
+            {
+                this.TB_TemplateLoc.Enabled = true;
+                this.TB_TemplateLoc.ReadOnly = false;
+            }
+        }
     }
 }
