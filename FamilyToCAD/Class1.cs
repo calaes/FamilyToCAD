@@ -35,6 +35,16 @@ public class FamilyToCAD1 : IExternalCommand
 
         if (form.ProjectLocation == "New Project")
         {
+
+            try
+            {
+                uiApp.ActiveUIDocument.SaveAndClose();
+            }
+            catch
+            {
+
+            }
+
             try
             {
                 uiDoc = uiApp.Application.NewProjectDocument(form.TemplateFile);
@@ -49,16 +59,30 @@ public class FamilyToCAD1 : IExternalCommand
                 Directory.CreateDirectory(@"C:\temp\");
             }
 
-            if (File.Exists(@"C:\temp\new_project.rvt"))
+            string projname = @"C:\temp\new_project.rvt";
+            try
             {
-                File.Delete(@"C:\temp\new_project.rvt");
+                if (File.Exists(projname))
+                {
+                    File.Delete(projname);
+                }
+            }
+            catch
+            {
+                int count = 1;
+                while (File.Exists(@"C\temp\newproject" + count + ".rvt") == true)
+                {
+                    count += 1;
+                }
+                projname = @"C\temp\newproject" + count + ".rvt";
+
             }
 
             SaveAsOptions options1 = new SaveAsOptions();
             options1.OverwriteExistingFile = true;
-            uiDoc.SaveAs(@"C:/temp/new_project.rvt", options1);
+            uiDoc.SaveAs(projname, options1);
 
-            uiApp.OpenAndActivateDocument(@"C:/temp/new_project.rvt");
+            uiApp.OpenAndActivateDocument(projname);
         }
         else if (form.ProjectLocation == "<Current Project>")
         {
@@ -77,6 +101,8 @@ public class FamilyToCAD1 : IExternalCommand
         {
             return Result.Failed;
         }
+
+        string filedir = form.FamilyFile.Substring(0,form.FamilyFile.LastIndexOf("\\"));
 
         if (File.Exists(form.FamilyFile))
         {
@@ -99,21 +125,18 @@ public class FamilyToCAD1 : IExternalCommand
                 // Export the active view
                 ICollection<ElementId> views = new List<ElementId>();
 
-                string name = family.Name;
+                tx.Start("ChangeView");
+                View3D view = View3D.CreateIsometric(uiDoc, viewFamilyType.Id);
+                view.DisplayStyle = DisplayStyle.Shading;
+                tx.Commit();
+
                 foreach (ElementId id in family.GetFamilySymbolIds())
                 {
-                    tx.Start("ChangeView");
-                    View3D view = View3D.CreateIsometric(uiDoc, viewFamilyType.Id);
-                    view.DisplayStyle = DisplayStyle.Shading;
-                    tx.Commit();
-
                     FamilySymbol famsymbol = family.Document.GetElement(id) as FamilySymbol;
                     XYZ origin = new XYZ(0, low, 0);
                     tx.Start("Load Family Member");
                     famsymbol.Activate();
                     FamilyInstance instance = uiDoc.Create.NewFamilyInstance(origin, famsymbol, StructuralType.NonStructural);
-
-                    //FamilyInstance instance1 = uiDoc.Create.NewFamilyInstance(origin,famsymbol,View.);
                     tx.Commit();
 
                     BoundingBoxXYZ BB = famsymbol.get_BoundingBox(view);
@@ -127,33 +150,122 @@ public class FamilyToCAD1 : IExternalCommand
 
                     low = low + BBMin.Y;
 
+                    ///exports currently loaded family member if "Single" was selected within the userform
+                    if (form.FileExportSetup == "Multiple")
+                    {
+
+                        tx.Start("ChangeOverallView");
+                        View3D overallview = View3D.CreateIsometric(uiDoc, viewFamilyType.Id);
+                        overallview.DisplayStyle = DisplayStyle.Shading;
+                        views.Add(overallview.Id);
+                        tx.Commit();
+
+                        if (form.ExportFileType.StartsWith("DWG"))
+                        {
+
+                            DWGExportOptions options = new DWGExportOptions();
+                            options.ExportOfSolids = SolidGeometry.ACIS;
+                            options.ACAPreference = ACAObjectPreference.Object;
+                            options.HideUnreferenceViewTags = true;
+
+                            if (form.ExportFileType.Contains("2007"))
+                            {
+                                options.FileVersion = ACADVersion.R2007;
+                            }
+                            else if (form.ExportFileType.Contains("2010"))
+                            {
+                                options.FileVersion = ACADVersion.R2010;
+                            }
+                            else if (form.ExportFileType.Contains("2013"))
+                            {
+                                options.FileVersion = ACADVersion.R2013;
+                            }
+
+                            string dwgfilename = famsymbol.Name + ".dwg";
+                            string dwgfullfilename = filedir + dwgfilename;
+                            if (File.Exists(dwgfullfilename))
+                            {
+                                File.Delete(dwgfullfilename);
+                            }
+                            uiDoc.Export(@filedir, @dwgfilename, views, options);
+
+                        }
+                        else if (form.ExportFileType.Contains("SAT"))
+                        {
+                            SATExportOptions options = new SATExportOptions();
+                            
+                            string SATfilename = famsymbol.Name + ".sat";
+                            string satfullfilename = filedir + SATfilename;
+                            if (File.Exists(satfullfilename))
+                            {
+                                File.Delete(satfullfilename);
+                            }
+                            uiDoc.Export(@filedir, SATfilename, views, options);
+                        }
+
+                        tx.Start("Delete Family Member");
+                        uiDoc.Delete(instance.Id);
+                        tx.Commit();
+
+                        views.Clear();
+                    }
+
                 }
 
-                tx.Start("ChangeOverallView");
-                View3D overallview = View3D.CreateIsometric(uiDoc, viewFamilyType.Id);
-                views.Add(overallview.Id);
-                overallview.DisplayStyle = DisplayStyle.Shading;
-                tx.Commit();
+                if (form.FileExportSetup == "Single")
+                {
+                    tx.Start("ChangeOverallView");
+                    View3D oview = View3D.CreateIsometric(uiDoc, viewFamilyType.Id);
+                    oview.DisplayStyle = DisplayStyle.Shading;
+                    views.Add(oview.Id);
+                    tx.Commit();
 
-                DWGExportOptions options = new DWGExportOptions();
-                options.FileVersion = ACADVersion.R2007;
-                options.ExportOfSolids = SolidGeometry.ACIS;
-                options.ACAPreference = ACAObjectPreference.Object;
-                options.HideUnreferenceViewTags = true;
+                    if (form.ExportFileType.StartsWith("DWG"))
+                    {
 
-                //string dwgfilename = family.Name + ".dwg";
-                //string dwgfullfilename = filedir + dwgfilename;
-                //if (File.Exists(dwgfullfilename))
-                //{
-                //    File.Delete(dwgfullfilename);
-                //}
-                //uiDoc.Export(@filedir, @dwgfilename, views, options);
+                        DWGExportOptions options = new DWGExportOptions();
+                        options.ExportOfSolids = SolidGeometry.ACIS;
+                        options.ACAPreference = ACAObjectPreference.Object;
+                        options.HideUnreferenceViewTags = true;
+
+                        if (form.ExportFileType.Contains("2007"))
+                        {
+                            options.FileVersion = ACADVersion.R2007;
+                        }
+                        else if (form.ExportFileType.Contains("2010"))
+                        {
+                            options.FileVersion = ACADVersion.R2010;
+                        }
+                        else if (form.ExportFileType.Contains("2013"))
+                        {
+                            options.FileVersion = ACADVersion.R2013;
+                        }
+
+                        string dwgfilename = family.Name + ".dwg";
+                        string dwgfullfilename = filedir + dwgfilename;
+                        if (File.Exists(dwgfullfilename))
+                        {
+                            File.Delete(dwgfullfilename);
+                        }
+                        uiDoc.Export(@filedir, @dwgfilename, views, options);
+
+                    }
+                    else if (form.ExportFileType.Contains("SAT"))
+                    {
+                        SATExportOptions options = new SATExportOptions();
+
+                        string SATfilename = family.Name + ".sat";
+                        string satfullfilename = filedir + SATfilename;
+                        if (File.Exists(satfullfilename))
+                        {
+                            File.Delete(satfullfilename);
+                        }
+                        uiDoc.Export(@filedir, SATfilename, views, options);
+                    }
+
+                }
 
             }
-        }
-        else
-        {
-            Console.WriteLine("Please Create Export Directory For the chosen CAPS file.");
         }
 
         return Result.Succeeded;
