@@ -40,7 +40,8 @@ public class FamilyToCAD1 : IExternalCommand
         }
 
         FamilyToCAD.Form2 form = new FamilyToCAD.Form2();
-        form.Show();
+        //form.Controls.
+        form.ShowDialog();        
 
         if (key.GetValue(subkeystr, null).ToString() == "" || File.Exists(key.GetValue(subkeystr).ToString()) == false)
         {
