@@ -27,46 +27,50 @@ public class FamilyToCAD1 : IExternalCommand
     {
         UIApplication uiApp = commandData.Application;
 
-        string keystr = @"Software\FamilyToDWG";
-        string revityear = "2017";
-        string subkeystr = "TemplateLocation" + revityear;
-        RegistryKey key = Registry.CurrentUser.OpenSubKey(keystr, true);
-
-        if (key == null)
-        {
-            key = Registry.CurrentUser.CreateSubKey(keystr);
-            key.SetValue(subkeystr, "");
-
-        }
-
         FamilyToCAD.Form2 form = new FamilyToCAD.Form2();
-        //form.Controls.
-        form.ShowDialog();        
+        form.ShowDialog();
 
-        if (key.GetValue(subkeystr, null).ToString() == "" || File.Exists(key.GetValue(subkeystr).ToString()) == false)
+        ///Sets up a document to place family into
+        Autodesk.Revit.DB.Document uiDoc = null;
+
+        if (form.ProjectLocation == "New Project")
         {
-            var templateFD = new OpenFileDialog();
-            templateFD.Filter = "rte files (*.rte)|*.rte";
-            templateFD.Title = "Choose a Template";
-            templateFD.ShowDialog();
-            string docdir = templateFD.FileName;
-            key.SetValue(subkeystr, @docdir);
+            try
+            {
+                uiDoc = uiApp.Application.NewProjectDocument(form.TemplateFile);
+            }
+            catch
+            {
+                return Result.Failed;
+            }
+
+            if (!Directory.Exists(@"C:\temp\"))
+            {
+                Directory.CreateDirectory(@"C:\temp\");
+            }
+
+            if (File.Exists(@"C:\temp\new_project.rvt"))
+            {
+                File.Delete(@"C:\temp\new_project.rvt");
+            }
+
+            SaveAsOptions options1 = new SaveAsOptions();
+            options1.OverwriteExistingFile = true;
+            uiDoc.SaveAs(@"C:/temp/new_project.rvt", options1);
+
+            uiApp.OpenAndActivateDocument(@"C:/temp/new_project.rvt");
         }
-
-        if (key.GetValue(subkeystr, null).ToString() == null)
+        else if (form.ProjectLocation == "<Current Project>")
         {
-            return Result.Failed;
-        }
-
-        Autodesk.Revit.DB.Document uiDoc;
-
-        try
-        {
-            uiDoc = uiApp.Application.NewProjectDocument(key.GetValue(subkeystr).ToString());
-        }
-        catch
-        {
-            return Result.Failed;
+            if (uiApp.ActiveUIDocument != null)
+            {
+                uiDoc = uiApp.ActiveUIDocument.Document;
+            }
+            else
+            {
+                MessageBox.Show("No Currently Loaded Project. Please Rerun addin and select a \"New Project\"");
+                return Result.Failed;
+            }
         }
 
         if (uiDoc == null)
@@ -74,37 +78,13 @@ public class FamilyToCAD1 : IExternalCommand
             return Result.Failed;
         }
 
-        if (!Directory.Exists(@"C:\temp\"))
-        {
-            Directory.CreateDirectory(@"C:\temp\");
-        }
-
-        if (File.Exists(@"C:\temp\new_project.rvt"))
-        {
-            File.Delete(@"C:\temp\new_project.rvt");
-        }
-
-        SaveAsOptions options1 = new SaveAsOptions();
-        options1.OverwriteExistingFile = true;
-        uiDoc.SaveAs(@"C:/temp/new_project.rvt", options1);
-
-        uiApp.OpenAndActivateDocument(@"C:/temp/new_project.rvt");
-
-        var FD = new OpenFileDialog();
-        FD.Filter = "rfa files (*.rfa)|*.rfa";
-        FD.Title = "Choose A RevitRFA Family file";
-        FD.ShowDialog();
-
-        string filename = FD.SafeFileName;
-        string filedir = FD.FileName.Replace(filename, "");
-
-        if (File.Exists(FD.FileName))
+        if (File.Exists(form.FamilyFile))
         {
             using (Transaction tx = new Transaction(uiDoc))
             {
                 tx.Start("Load Family");
                 Autodesk.Revit.DB.Family family = null;
-                uiDoc.LoadFamily(FD.FileName, out family);
+                uiDoc.LoadFamily(form.FamilyFile, out family);
                 tx.Commit();
 
                 Double low = 0;
@@ -161,13 +141,13 @@ public class FamilyToCAD1 : IExternalCommand
                 options.ACAPreference = ACAObjectPreference.Object;
                 options.HideUnreferenceViewTags = true;
 
-                string dwgfilename = family.Name + ".dwg";
-                string dwgfullfilename = filedir + dwgfilename;
-                if (File.Exists(dwgfullfilename))
-                {
-                    File.Delete(dwgfullfilename);
-                }
-                uiDoc.Export(@filedir, @dwgfilename, views, options);
+                //string dwgfilename = family.Name + ".dwg";
+                //string dwgfullfilename = filedir + dwgfilename;
+                //if (File.Exists(dwgfullfilename))
+                //{
+                //    File.Delete(dwgfullfilename);
+                //}
+                //uiDoc.Export(@filedir, @dwgfilename, views, options);
 
             }
         }
