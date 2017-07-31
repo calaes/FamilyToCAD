@@ -19,6 +19,9 @@ namespace FamilyToCAD
         private string s_ProjectLocation;
         private string s_ExportFileType;
         private string s_FileExportSetup;
+        private RegistryKey templatekey;
+        private string revityear = "2017";
+        private string keystr = @"Software\FamilyToDWG";
 
         public Form2()
         {
@@ -26,27 +29,25 @@ namespace FamilyToCAD
             ///Initializes the userform
             ///Fills in template location if found in registry
             ///</summary>
-            string keystr = @"Software\FamilyToDWG";
-            string revityear = "2017";
             string subkeystr = "TemplateLocation" + revityear;
-            RegistryKey key = Registry.CurrentUser.OpenSubKey(keystr, true);
+            templatekey = Registry.CurrentUser.OpenSubKey(keystr, true);
 
             InitializeComponent();
 
-            if (key == null)
+            if (templatekey == null)
             {
-                key = Registry.CurrentUser.CreateSubKey(keystr);
-                key.SetValue(subkeystr, "");
+                templatekey = Registry.CurrentUser.CreateSubKey(keystr);
+                templatekey.SetValue(subkeystr, "");
             }
             else
             {
-                if (File.Exists(key.GetValue(subkeystr, null).ToString()))
+                if (File.Exists(templatekey.GetValue(subkeystr, null).ToString()))
                 {
-                    this.TB_TemplateLoc.Text = key.GetValue(subkeystr, null).ToString();
+                    this.TB_TemplateLoc.Text = templatekey.GetValue(subkeystr, null).ToString();
                 }
             }
 
-            this.ComBox_Project.SelectedIndex = 0;
+            this.ComBox_Project.SelectedIndex = 1;
             this.ComBox_ExpFileType.SelectedIndex = 0;
             this.ComBox_FileExportSetup.SelectedIndex = 0;
         }
@@ -148,6 +149,7 @@ namespace FamilyToCAD
                 }
             }
 
+            templatekey.SetValue("TemplateLocation" + revityear, this.TB_TemplateLoc.Text);
             this.FamilyFile = this.TB_FamilyLoc.Text;
             this.TemplateFile = this.TB_TemplateLoc.Text;
             this.ExportFileType = this.ComBox_ExpFileType.Text;
