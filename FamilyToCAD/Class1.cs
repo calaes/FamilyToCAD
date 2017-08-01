@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 using System.Windows.Forms;
-using Microsoft.Win32;
 
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
-using Autodesk.Revit.Creation;
-using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
-using Autodesk.Revit.UI.Selection;
-using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 
 [TransactionAttribute(TransactionMode.Manual)]
@@ -36,23 +29,8 @@ public class FamilyToCAD1 : IExternalCommand
         if (form.ProjectLocation == "New Project")
         {
 
-            try
-            {
-                uiApp.ActiveUIDocument.SaveAndClose();
-            }
-            catch
-            {
-
-            }
-
-            try
-            {
-                uiDoc = uiApp.Application.NewProjectDocument(form.TemplateFile);
-            }
-            catch
-            {
-                return Result.Failed;
-            }
+            Autodesk.Revit.ApplicationServices.Application app = uiApp.Application;
+            uiDoc = app.NewProjectDocument(form.TemplateFile);
 
             if (!Directory.Exists(@"C:\temp\"))
             {
@@ -130,13 +108,20 @@ public class FamilyToCAD1 : IExternalCommand
                 view.DisplayStyle = DisplayStyle.Shading;
                 tx.Commit();
 
-                foreach (ElementId id in family.GetFamilySymbolIds())
+                foreach (FamilySymbol famsymbol in family.Symbols)
                 {
-                    FamilySymbol famsymbol = family.Document.GetElement(id) as FamilySymbol;
+                    //FamilySymbol famsymbol = family.Document.GetElement(id) as FamilySymbol;
                     XYZ origin = new XYZ(0, low, 0);
                     tx.Start("Load Family Member");
                     famsymbol.Activate();
                     FamilyInstance instance = uiDoc.Create.NewFamilyInstance(origin, famsymbol, StructuralType.NonStructural);
+                    tx.Commit();
+
+                    TagMode TM = TagMode.TM_ADDBY_CATEGORY;
+                    TagOrientation TO = TagOrientation.Horizontal;
+
+                    tx.Start("Add Tag");
+                    uiDoc.Create.NewTag(view, instance, true, TM, TO, famsymbol.get_BoundingBox(view).Max);
                     tx.Commit();
 
                     BoundingBoxXYZ BB = famsymbol.get_BoundingBox(view);
@@ -168,7 +153,15 @@ public class FamilyToCAD1 : IExternalCommand
                             options.ACAPreference = ACAObjectPreference.Object;
                             options.HideUnreferenceViewTags = true;
 
-                            if (form.ExportFileType.Contains("2007"))
+                            if (form.ExportFileType.Contains("2000"))
+                            {
+                                options.FileVersion = ACADVersion.R2000;
+                            }
+                            else if (form.ExportFileType.Contains("2004"))
+                            {
+                                options.FileVersion = ACADVersion.R2004;
+                            }
+                            else if (form.ExportFileType.Contains("2007"))
                             {
                                 options.FileVersion = ACADVersion.R2007;
                             }
@@ -228,7 +221,15 @@ public class FamilyToCAD1 : IExternalCommand
                         options.ACAPreference = ACAObjectPreference.Object;
                         options.HideUnreferenceViewTags = true;
 
-                        if (form.ExportFileType.Contains("2007"))
+                        if (form.ExportFileType.Contains("2000"))
+                        {
+                            options.FileVersion = ACADVersion.R2000;
+                        }
+                        else if (form.ExportFileType.Contains("2004"))
+                        {
+                            options.FileVersion = ACADVersion.R2004;
+                        }
+                        else if (form.ExportFileType.Contains("2007"))
                         {
                             options.FileVersion = ACADVersion.R2007;
                         }

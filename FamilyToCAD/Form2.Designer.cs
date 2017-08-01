@@ -103,6 +103,8 @@
             // 
             this.ComBox_ExpFileType.FormattingEnabled = true;
             this.ComBox_ExpFileType.Items.AddRange(new object[] {
+            "DWG (2000)",
+            "DWG (2004)",
             "DWG (2007)",
             "DWG (2010)",
             "DWG (2013)",

@@ -20,7 +20,7 @@ namespace FamilyToCAD
         private string s_ExportFileType;
         private string s_FileExportSetup;
         private RegistryKey templatekey;
-        private string revityear = "2017";
+        private string revityear = "2014";
         private string keystr = @"Software\FamilyToDWG";
 
         public Form2()
@@ -41,7 +41,8 @@ namespace FamilyToCAD
             }
             else
             {
-                if (File.Exists(templatekey.GetValue(subkeystr, null).ToString()))
+
+                if (File.Exists(templatekey.GetValue(@subkeystr,"").ToString()))
                 {
                     this.TB_TemplateLoc.Text = templatekey.GetValue(subkeystr, null).ToString();
                 }
