@@ -154,8 +154,8 @@
             // 
             this.ComBox_FileExportSetup.FormattingEnabled = true;
             this.ComBox_FileExportSetup.Items.AddRange(new object[] {
-            "Single",
-            "Multiple"});
+            "Single File",
+            "Multiple Files"});
             this.ComBox_FileExportSetup.Location = new System.Drawing.Point(207, 234);
             this.ComBox_FileExportSetup.Name = "ComBox_FileExportSetup";
             this.ComBox_FileExportSetup.Size = new System.Drawing.Size(216, 28);

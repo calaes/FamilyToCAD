@@ -91,7 +91,8 @@ public class FamilyToCAD1 : IExternalCommand
                 uiDoc.LoadFamily(form.FamilyFile, out family);
                 tx.Commit();
 
-                Double low = 0;
+                Double Y = 0;
+                Double X = 0;
 
                 var collector = new FilteredElementCollector(uiDoc);
 
@@ -105,13 +106,43 @@ public class FamilyToCAD1 : IExternalCommand
 
                 tx.Start("ChangeView");
                 View3D view = View3D.CreateIsometric(uiDoc, viewFamilyType.Id);
+                view.SaveOrientationAndLock();
                 view.DisplayStyle = DisplayStyle.Shading;
                 tx.Commit();
+
+
+                // Places another family next to original if "Current Document" was selected
+                FilteredElementCollector faminstances = new FilteredElementCollector(uiDoc).OfClass(typeof(FamilyInstance));
+
+                if (faminstances.Count() != 0)
+                {
+                    Boolean first = true;
+                    foreach (FamilyInstance faminst in faminstances)
+                    {
+                        
+                        if (first == true)
+                        {
+                            X = faminst.get_BoundingBox(view).Max.X;
+                            Y = faminst.get_BoundingBox(view).Max.Y;
+                        }
+                        else
+                        {
+                            if (faminst.get_BoundingBox(view).Max.X > X)
+                            {
+                                X = faminst.get_BoundingBox(view).Max.X;
+                            }
+                            if (faminst.get_BoundingBox(view).Max.Y < Y)
+                            {
+                                Y = faminst.get_BoundingBox(view).Max.Y;
+                            }
+                        }
+                    }
+                }
 
                 foreach (FamilySymbol famsymbol in family.Symbols)
                 {
                     //FamilySymbol famsymbol = family.Document.GetElement(id) as FamilySymbol;
-                    XYZ origin = new XYZ(0, low, 0);
+                    XYZ origin = new XYZ(X, Y, 0);
                     tx.Start("Load Family Member");
                     famsymbol.Activate();
                     FamilyInstance instance = uiDoc.Create.NewFamilyInstance(origin, famsymbol, StructuralType.NonStructural);
@@ -120,9 +151,9 @@ public class FamilyToCAD1 : IExternalCommand
                     TagMode TM = TagMode.TM_ADDBY_CATEGORY;
                     TagOrientation TO = TagOrientation.Horizontal;
 
-                    tx.Start("Add Tag");
-                    uiDoc.Create.NewTag(view, instance, true, TM, TO, famsymbol.get_BoundingBox(view).Max);
-                    tx.Commit();
+                    //tx.Start("Add Tag");
+                    //uiDoc.Create.NewTag(view, instance, true, TM, TO, famsymbol.get_BoundingBox(view).Max);
+                    //tx.Commit();
 
                     BoundingBoxXYZ BB = famsymbol.get_BoundingBox(view);
 
@@ -133,10 +164,10 @@ public class FamilyToCAD1 : IExternalCommand
                     //instance.Location.Move(trans);
                     //tx.Commit();
 
-                    low = low + BBMin.Y;
+                    Y = Y + BBMin.Y;
 
                     ///exports currently loaded family member if "Single" was selected within the userform
-                    if (form.FileExportSetup == "Multiple")
+                    if (form.FileExportSetup.Contains("Multiple"))
                     {
 
                         tx.Start("ChangeOverallView");
@@ -202,10 +233,27 @@ public class FamilyToCAD1 : IExternalCommand
 
                         views.Clear();
                     }
+                    else if (form.FileExportSetup.Contains("Single"))
+                    {
+                        string notetext = famsymbol.Name;
+
+                        XYZ textplacement = new XYZ(BB.Min.X, low-.5*BBMin.Y, BB.Min.Z);
+                        
+                        tx.Start("Place Annotation");
+                        TextNote txnote = uiDoc.Create.NewTextNote(uiDoc.ActiveView,textplacement, XYZ.BasisX, XYZ.BasisY,.06, TextAlignFlags.TEF_ALIGN_LEFT | TextAlignFlags.TEF_ALIGN_BOTTOM, notetext);
+                        TextElement text = uiDoc.GetElement(txnote.Id) as TextElement;
+                        TextElementType textType = text.Symbol;
+                        Parameter textSize = textType.get_Parameter("Text Size");
+                        Double oldsize = textSize.AsDouble();
+                        double newSize = BB.Max.Y;
+                        textSize.Set(newSize/50);
+                        //Leader lead =  txnote.AddLeader(TextNoteLeaderTypes.TNLT_STRAIGHT_L);
+                        tx.Commit();
+                    }
 
                 }
 
-                if (form.FileExportSetup == "Single")
+                if (form.FileExportSetup.Contains("Single"))
                 {
                     tx.Start("ChangeOverallView");
                     View3D oview = View3D.CreateIsometric(uiDoc, viewFamilyType.Id);
