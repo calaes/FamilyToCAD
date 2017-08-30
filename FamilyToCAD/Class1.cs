@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Windows.Forms;
+using System.Drawing;
 
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
@@ -13,11 +14,13 @@ using Autodesk.Revit.Attributes;
 [RegenerationAttribute(RegenerationOption.Manual)]
 public class FamilyToCAD1 : IExternalCommand
 {
+
     public Result Execute(
         ExternalCommandData commandData,
         ref string message,
         ElementSet elements)
     {
+        
         UIApplication uiApp = commandData.Application;
 
         FamilyToCAD.Form2 form = new FamilyToCAD.Form2();
@@ -26,6 +29,8 @@ public class FamilyToCAD1 : IExternalCommand
         ///Sets up a document to place family into
         Autodesk.Revit.DB.Document uiDoc = null;
 
+        ///determines if user wants to use the current project, or a new project
+        ///expecially useful for bring multiple families into the same project
         if (form.ProjectLocation == "New Project")
         {
 
@@ -75,6 +80,8 @@ public class FamilyToCAD1 : IExternalCommand
             }
         }
 
+
+        //fails out if the document is not opened properly
         if (uiDoc == null)
         {
             return Result.Failed;
@@ -113,32 +120,34 @@ public class FamilyToCAD1 : IExternalCommand
 
                 // Places another family next to original if "Current Document" was selected
                 FilteredElementCollector faminstances = new FilteredElementCollector(uiDoc).OfClass(typeof(FamilyInstance));
+                FilteredElementCollector txtinstances = new FilteredElementCollector(uiDoc).OfClass(typeof(TextNote));
 
-                if (faminstances.Count() != 0)
+
+                ///Finds the max X coordinate of any text currently on the page. Setup of family instances is as such:
+                ///fam1_inst1;txt1;fam2_inst1;txt4
+                ///fam1_inst2;txt2;fam2_inst2;txt5
+                ///fam1_inst3;txt3
+                ///
+                if (txtinstances.Count() != 0)
                 {
                     Boolean first = true;
-                    foreach (FamilyInstance faminst in faminstances)
+                    foreach (TextNote txtnote in txtinstances)
                     {
-                        
                         if (first == true)
                         {
-                            X = faminst.get_BoundingBox(view).Max.X;
-                            Y = faminst.get_BoundingBox(view).Max.Y;
+                            X = txtnote.Coord.X + txtnote.Width;
                         }
                         else
                         {
-                            if (faminst.get_BoundingBox(view).Max.X > X)
+                            if (txtnote.Coord.X + txtnote.Width > X)
                             {
-                                X = faminst.get_BoundingBox(view).Max.X;
-                            }
-                            if (faminst.get_BoundingBox(view).Max.Y < Y)
-                            {
-                                Y = faminst.get_BoundingBox(view).Max.Y;
+                                X = txtnote.Coord.X + txtnote.Width;
                             }
                         }
                     }
                 }
 
+                //loops through each family instance performing the appropriate instantiation action
                 foreach (FamilySymbol famsymbol in family.Symbols)
                 {
                     //FamilySymbol famsymbol = family.Document.GetElement(id) as FamilySymbol;
@@ -148,21 +157,9 @@ public class FamilyToCAD1 : IExternalCommand
                     FamilyInstance instance = uiDoc.Create.NewFamilyInstance(origin, famsymbol, StructuralType.NonStructural);
                     tx.Commit();
 
-                    TagMode TM = TagMode.TM_ADDBY_CATEGORY;
-                    TagOrientation TO = TagOrientation.Horizontal;
-
-                    //tx.Start("Add Tag");
-                    //uiDoc.Create.NewTag(view, instance, true, TM, TO, famsymbol.get_BoundingBox(view).Max);
-                    //tx.Commit();
-
                     BoundingBoxXYZ BB = famsymbol.get_BoundingBox(view);
 
                     XYZ BBMin = BB.Min;
-
-                    //XYZ trans = new XYZ(origin.X + BB.Min.X, origin.Y + BB.Min.Y, 0);
-                    //tx.Start("Element Move");
-                    //instance.Location.Move(trans);
-                    //tx.Commit();
 
                     Y = Y + BBMin.Y;
 
@@ -178,12 +175,13 @@ public class FamilyToCAD1 : IExternalCommand
 
                         if (form.ExportFileType.StartsWith("DWG"))
                         {
-
+                            ///ACAD export options
                             DWGExportOptions options = new DWGExportOptions();
                             options.ExportOfSolids = SolidGeometry.ACIS;
                             options.ACAPreference = ACAObjectPreference.Object;
                             options.HideUnreferenceViewTags = true;
 
+                            ///exports to chosen ACAD version
                             if (form.ExportFileType.Contains("2000"))
                             {
                                 options.FileVersion = ACADVersion.R2000;
@@ -235,9 +233,10 @@ public class FamilyToCAD1 : IExternalCommand
                     }
                     else if (form.FileExportSetup.Contains("Single"))
                     {
+                        ///Creates Text Note next to the family instance
                         string notetext = famsymbol.Name;
 
-                        XYZ textplacement = new XYZ(BB.Min.X, low-.5*BBMin.Y, BB.Min.Z);
+                        XYZ textplacement = new XYZ(X + BB.Max.X, Y-.5*BBMin.Y, BB.Min.Z);
                         
                         tx.Start("Place Annotation");
                         TextNote txnote = uiDoc.Create.NewTextNote(uiDoc.ActiveView,textplacement, XYZ.BasisX, XYZ.BasisY,.06, TextAlignFlags.TEF_ALIGN_LEFT | TextAlignFlags.TEF_ALIGN_BOTTOM, notetext);
@@ -247,6 +246,19 @@ public class FamilyToCAD1 : IExternalCommand
                         Double oldsize = textSize.AsDouble();
                         double newSize = BB.Max.Y;
                         textSize.Set(newSize/50);
+
+                        TextNoteType tt
+                            = new FilteredElementCollector(uiDoc)
+                              .OfClass(typeof(TextNoteType))
+                              .FirstElement() as TextNoteType;
+
+                        String ttname = tt.Name;
+
+                        Font font = new Font("Arial",17, FontStyle.Regular);
+                        Size txtbox = TextRenderer.MeasureText(notetext, font);
+                        Double newWidth = ((double)txtbox.Width/6);
+                        txnote.Width = newWidth;
+
                         //Leader lead =  txnote.AddLeader(TextNoteLeaderTypes.TNLT_STRAIGHT_L);
                         tx.Commit();
                     }
@@ -269,6 +281,7 @@ public class FamilyToCAD1 : IExternalCommand
                         options.ACAPreference = ACAObjectPreference.Object;
                         options.HideUnreferenceViewTags = true;
 
+                        ///Exports to chosen ACAD version
                         if (form.ExportFileType.Contains("2000"))
                         {
                             options.FileVersion = ACADVersion.R2000;
